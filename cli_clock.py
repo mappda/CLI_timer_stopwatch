@@ -6,35 +6,59 @@ import sys
 value=sys.argv[2:]
 
 def timer(value):
-    hrs=mins=secs=0
-    amount=[i[:len(i)-1] for i in value]
-    unit=[i[len(i)-1:] for i in value]
-    try:
-        amount=[int(i) for i in amount]
-    except Exception as error:
-        print("Usage: timer <value><unit>.\nExample: 10m -> 10 minutes\n         1h 10m 30s -> 1 hour, 10 minutes and 30 seconds.\nsee cli_clock -help.")
-        sys.exit(1)
-    if False in [False for i in unit if not(i in ['h','m','s'])]:
-        print("Usage: timer <value><unit>.\nExample: 10m -> 10 minutes\n         1h 10m 30s -> 1 hour, 10 minutes and 30 seconds.\nsee cli_clock -help.")
-        sys.exit(1)
+    # 1. Clean the input (remove spaces)
+    value_str="".join(value)
+    print(value_str)
+    parts = value_str.split()
+    total_sec = 0
     
-    if 'h' in unit: hrs=amount[unit.index('h')]
-    if 'm' in unit: mins=amount[unit.index('m')]
-    if 's' in unit: secs=amount[unit.index('s')]
+    # 2. Parse the components
+    for part in parts:
+        # Extract number and unit using a more robust method
+        # This handles "10m", "10 m", "10min" (if you want)
+        amount_str = ""
+        unit_char = ""
+        for i, char in enumerate(part):
+            if char.isdigit() or char == '.':
+                amount_str += char
+            else:
+                unit_char = char
+                break
+        
+        try:
+            val = int(amount_str)
+            if unit_char == 'h': total_sec += val * 3600
+            elif unit_char == 'm': total_sec += val * 60
+            elif unit_char == 's': total_sec += val
+            else: raise ValueError("Invalid Unit")
+        except:
+            print(f"Error: Invalid input '{part}'. Use h, m, or s.")
+            sys.exit(1)
 
-    total_sec=(hrs*3600)+(mins*60)+secs
-    seconds=total_sec%60
-    minutes=int((total_sec/60))%60
-    hours=int((total_sec/3600))
-    print(f"⏰ Starting timer for {hours:02}:{minutes:02}:{seconds:02}\n")    
-    emojis=['🕛', '🕘', '🕕', '🕒']
-    for sec in range(total_sec,0,-1):
-        seconds=sec%60
-        minutes=int((sec/60))%60
-        hours=int((sec/3600))
-        print(f"\r{emojis[sec%4]} {hours:02}:{minutes:02}:{seconds:02}", flush=True, end="")
+    if total_sec <= 0:
+        print("Please enter a valid duration (e.g., 10m).")
+        return
+
+    # 3. Countdown Logic
+    emojis = ['🕛', '🕘', '🕕', '🕒']
+    print(f"⏰ Starting timer for {total_sec} seconds.")
+    
+    # Use a while loop with time.time() to prevent "drift"
+    start_time = time.time()
+    end_time = start_time + total_sec
+
+    while time.time() < end_time:
+        remaining = int(end_time - time.time())
+        h = remaining // 3600
+        m = (remaining % 3600) // 60
+        s = remaining % 60
+        
+        # \r moves the cursor to the start of the line
+        print(f"\r{emojis[remaining % 4]} {h:02}:{m:02}:{s:02}", end="", flush=True)
         time.sleep(1)
-    print()
+
+    print("\n🔔 Time's up!")
+
 timer(value)
 
 def stopwatch():
