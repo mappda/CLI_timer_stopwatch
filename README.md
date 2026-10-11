@@ -13,7 +13,7 @@ A minimal, dependency-free command-line timer and stopwatch for Linux.
 ## Installation
 
 ```bash
-git clone https://github.com/<your-username>/cli-clock.git
+git clone https://github.com/mappda/cli-clock.git
 cd cli-clock
 chmod +x cli_clock.py
 
